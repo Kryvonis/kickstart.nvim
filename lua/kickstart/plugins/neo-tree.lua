@@ -15,10 +15,23 @@ return {
   },
   opts = {
     filesystem = {
+      follow_current_file = {
+        enabled = true, -- 🔧 this makes the tree track the current buffer
+        leave_dirs_open = false,
+      },
       window = {
         mappings = {
           ['\\'] = 'close_window',
         },
+      },
+    },
+    event_handlers = {
+      {
+        event = 'file_opened',
+        handler = function(file_path)
+          -- auto close neo-tree when a file is opened
+          require('neo-tree.command').execute { action = 'close' }
+        end,
       },
     },
   },
