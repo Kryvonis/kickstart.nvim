@@ -459,8 +459,11 @@ require('lazy').setup({
       -- Automatically install LSPs and related tools to stdpath for Neovim
       -- Mason must be loaded before its dependents so we need to set it up here.
       -- NOTE: `opts = {}` is the same as calling `require('mason').setup({})`
-      { 'mason-org/mason.nvim', opts = {} },
-      'mason-org/mason-lspconfig.nvim',
+
+      { 'mason-org/mason.nvim', version = '^1.0.0', opts = {} },
+      { 'mason-org/mason-lspconfig.nvim', version = '^1.0.0' },
+      -- { 'mason-org/mason.nvim', opts = {} },
+      -- 'mason-org/mason-lspconfig.nvim',
       'WhoIsSethDaniel/mason-tool-installer.nvim',
 
       -- Useful status updates for LSP.
@@ -698,10 +701,7 @@ require('lazy').setup({
 
       require('mason-lspconfig').setup {
         ensure_installed = {}, -- explicitly set to an empty table (Kickstart populates installs via mason-tool-installer)
-        automatic_installation = true,
-        features = {
-          automatic_enable = false,
-        },
+        automatic_installation = false,
         handlers = {
           function(server_name)
             local server = servers[server_name] or {}
@@ -974,7 +974,7 @@ require('lazy').setup({
   --    This is the easiest way to modularize your config.
   --
   --  Uncomment the following line and add your plugins to `lua/custom/plugins/*.lua` to get going.
-  { import = 'custom' },
+  { import = 'custom.plugins' },
   --
   -- For additional information with loading, sourcing and examples see `:help lazy.nvim-🔌-plugin-spec`
   -- Or use telescope!
