@@ -80,6 +80,10 @@ end)
 
 -- Enable break indent
 vim.o.breakindent = true
+vim.o.expandtab = true -- convert tabs to spaces
+vim.o.shiftwidth = 2 -- indentation level = 2 spaces
+vim.o.tabstop = 2 -- a tab = 2 spaces
+vim.o.softtabstop = 2 -- tab key behaves like 2 spaces
 
 -- Save undo history
 vim.o.undofile = true
@@ -250,6 +254,7 @@ require('lazy').setup({
   -- See `:help gitsigns` to understand what the configuration keys do
   { -- Adds git related signs to the gutter, as well as utilities for managing changes
     'lewis6991/gitsigns.nvim',
+    lazy = false,
     opts = {
       signs = {
         add = { text = '+' },
@@ -257,6 +262,25 @@ require('lazy').setup({
         delete = { text = '_' },
         topdelete = { text = '‾' },
         changedelete = { text = '~' },
+      },
+      current_line_blame = true,
+    },
+    keys = {
+      {
+        '<leader>ghp',
+        function()
+          require('gitsigns').preview_hunk()
+        end,
+        mode = 'n',
+        desc = '[G]it [Hunk] [P]review',
+      },
+      {
+        '<leader>ghr',
+        function()
+          require('gitsigns').reset_hunk()
+        end,
+        mode = 'n',
+        desc = '[G]it [Hunk] [R]eset',
       },
     },
   },
@@ -816,7 +840,7 @@ require('lazy').setup({
         -- <c-k>: Toggle signature help
         --
         -- See :h blink-cmp-config-keymap for defining your own keymap
-        preset = 'default',
+        preset = 'enter',
 
         -- For more advanced Luasnip keymaps (e.g. selecting choice nodes, expansion) see:
         --    https://github.com/L3MON4D3/LuaSnip?tab=readme-ov-file#keymaps
