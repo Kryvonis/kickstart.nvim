@@ -69,7 +69,35 @@ vim.o.mouse = 'a'
 -- Don't show the mode, since it's already in the status line
 vim.o.showmode = false
 -- Add fold
-vim.o.foldmethod = 'manual'
+vim.o.foldmethod = 'expr'
+vim.opt.foldmethod = 'expr'
+vim.opt.foldexpr = 'nvim_treesitter#foldexpr()'
+vim.opt.foldenable = true
+vim.opt.foldlevel = 99
+vim.opt.foldlevelstart = 1
+vim.opt.foldcolumn = '1' -- Show fold column
+vim.opt.fillchars:append { fold = ' ' } -- Optional: cleaner look
+
+-- Auto-save and restore folds using views
+
+vim.api.nvim_create_autocmd('BufWinLeave', {
+  callback = function()
+    local bufname = vim.api.nvim_buf_get_name(0)
+    if bufname ~= '' and vim.fn.filereadable(bufname) == 1 then
+      vim.cmd 'silent! mkview'
+    end
+  end,
+})
+
+vim.api.nvim_create_autocmd('BufWinEnter', {
+  callback = function()
+    local bufname = vim.api.nvim_buf_get_name(0)
+    if bufname ~= '' and vim.fn.filereadable(bufname) == 1 then
+      vim.cmd 'silent! loadview'
+    end
+  end,
+})
+
 -- Sync clipboard between OS and Neovim.
 --  Schedule the setting after `UiEnter` because it can increase startup-time.
 --  Remove this option if you want your OS clipboard to remain independent.
@@ -143,6 +171,10 @@ vim.o.confirm = true
 -- Clear highlights on search when pressing <Esc> in normal mode
 --  See `:help hlsearch`
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
+
+-- Stay in visual mode when indenting
+vim.keymap.set('v', '<', '<gv', { noremap = true, silent = true })
+vim.keymap.set('v', '>', '>gv', { noremap = true, silent = true })
 
 -- Diagnostic keymaps
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
