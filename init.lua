@@ -208,7 +208,7 @@ vim.api.nvim_create_autocmd('FileType', {
   group = 'JSLogMacro',
   pattern = { 'javascript', 'typescript' },
   callback = function()
-    vim.fn.setreg('c', 'yoconsole.log("' .. esc .. 'pa:' .. esc .. 'la, ' .. esc .. 'pla;' .. esc)
+    vim.fn.setreg('c', 'yoconsole.log("' .. esc .. 'pa:", ' .. esc .. 'pa);' .. esc)
   end,
 })
 
