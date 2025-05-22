@@ -3,6 +3,11 @@ return {
     'folke/trouble.nvim',
     opts = {}, -- for default options, refer to the configuration section for custom setup.
     cmd = 'Trouble',
+    init = function()
+      vim.api.nvim_create_user_command('LspShowDiagnosticFloat', function()
+        vim.diagnostic.open_float(nil, { scope = 'cursor', focus = false })
+      end, {})
+    end,
     keys = {
       {
         '<leader>xx',
@@ -28,6 +33,11 @@ return {
         '<leader>xL',
         '<cmd>Trouble loclist toggle<cr>',
         desc = 'Location List (Trouble)',
+      },
+      {
+        '<leader>xf',
+        '<cmd>LspShowDiagnosticFloat<cr>',
+        desc = 'Open Diagnostic [F]loat',
       },
       {
         '<leader>xQ',
