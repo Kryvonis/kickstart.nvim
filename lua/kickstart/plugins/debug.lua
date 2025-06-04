@@ -144,5 +144,26 @@ return {
         detached = vim.fn.has 'win32' == 0,
       },
     }
+    -- TypeScript/JavaScript DAP configuration
+    dap.adapters.node2 = {
+      type = 'executable',
+      command = 'node',
+      args = { vim.fn.stdpath 'data' .. '/mason/packages/js-debug-adapter/js-debug-adapter.js' },
+    }
+
+    dap.configurations.typescript = {
+      {
+        name = 'Debug TypeScript',
+        type = 'node2',
+        request = 'launch',
+        program = '${file}',
+        cwd = vim.fn.getcwd(),
+        sourceMaps = true,
+        protocol = 'inspector',
+        console = 'integratedTerminal',
+      },
+    }
+
+    dap.configurations.javascript = dap.configurations.typescript
   end,
 }

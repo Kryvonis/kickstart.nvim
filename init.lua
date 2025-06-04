@@ -202,6 +202,12 @@ vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right win
 vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
 vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
 
+-- Visual mode navigation
+vim.keymap.set('v', '<C-h>', '<C-w><C-h>', { desc = 'Move focus to the left window in visual mode' })
+vim.keymap.set('v', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right window in visual mode' })
+vim.keymap.set('v', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window in visual mode' })
+vim.keymap.set('v', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window in visual mode' })
+
 local esc = vim.api.nvim_replace_termcodes('<Esc>', true, true, true)
 vim.api.nvim_create_augroup('JSLogMacro', { clear = true })
 vim.api.nvim_create_autocmd('FileType', {
