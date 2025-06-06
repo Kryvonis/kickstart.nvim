@@ -4,6 +4,7 @@ test.sh
 nvim
 
 spell/
+pack/
 lazy-lock.json
 .env
 assets
