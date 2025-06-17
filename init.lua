@@ -75,8 +75,15 @@ vim.opt.foldexpr = 'nvim_treesitter#foldexpr()'
 vim.opt.foldenable = true
 vim.opt.foldlevel = 99
 vim.opt.foldlevelstart = 1
-vim.opt.foldcolumn = '1' -- Show fold column
+vim.opt.foldcolumn = '0' -- Show fold column '1'
 vim.opt.fillchars:append { fold = ' ' } -- Optional: cleaner look
+
+-- ~/.config/nvim/init.lua or lua/config/dap.lua
+vim.lsp.set_log_level 'DEBUG' -- This is for LSP, but can sometimes help with related DAP issues
+
+-- Set DAP log level (Crucial for more details)
+vim.g.dap_log_level = 'DEBUG'
+vim.g.dap_log_file = '/tmp/nvim-dap.log' -- You can change this path
 
 -- Auto-save and restore folds using views
 
