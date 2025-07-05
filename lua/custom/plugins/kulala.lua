@@ -1,5 +1,6 @@
 return {
   {
+    -- http processor
     'mistweaverco/kulala.nvim',
     keys = {
       { '<leader>Rs', desc = 'Send request' },
