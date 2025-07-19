@@ -79,7 +79,7 @@ vim.opt.foldcolumn = '0' -- Show fold column '1'
 vim.opt.fillchars:append { fold = ' ' } -- Optional: cleaner look
 
 -- ~/.config/nvim/init.lua or lua/config/dap.lua
-vim.lsp.set_log_level 'DEBUG' -- This is for LSP, but can sometimes help with related DAP issues
+vim.lsp.set_log_level 'WARN' -- This is for LSP, but can sometimes help with related DAP issues
 
 -- Set DAP log level (Crucial for more details)
 vim.g.dap_log_level = 'DEBUG'
