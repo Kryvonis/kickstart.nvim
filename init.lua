@@ -950,8 +950,17 @@ require('lazy').setup({
 
   {
     'EdenEast/nightfox.nvim',
-    priority = 1000, -- Make sure to load this before all the other start plugins.
-    config = function()
+    priority = 1000,
+    lazy = false,
+    opts = {
+      transparent = true,
+      styles = {
+        sidebars = 'transparent',
+        floats = 'transparent',
+      },
+    },
+    config = function(_, opts)
+      require('nightfox').setup(opts)
       vim.cmd.colorscheme 'carbonfox'
     end,
   },
@@ -1100,6 +1109,14 @@ require('lazy').setup({
     },
   },
 })
+
+-- Optional: Explicitly force some core groups to none AFTER the colorscheme
+-- This is a fallback if the colorscheme or transparent.nvim isn't catching everything.
+vim.cmd [[
+  highlight Normal guibg=none ctermbg=none
+  highlight NonText guibg=none ctermbg=none
+  highlight EndOfBuffer guibg=none ctermbg=none
+]]
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
