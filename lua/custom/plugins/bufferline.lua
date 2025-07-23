@@ -30,29 +30,14 @@ return {
           show_buffer_close_icons = false,
           separator_style = 'thin',
           color_icons = true, -- whether or not to add the filetype icon highlights
+          -- These options help with transparency
+          show_tab_indicators = true,
+          enforce_regular_tabs = false,
+          always_show_bufferline = true,
         },
         highlights = {
-          -- This section allows you to override individual highlight groups for bufferline
-          -- Set the foreground color of the separator characters
-          separator = {
-            -- Set 'fg' to a color that complements your theme.
-            -- You can use a hex code (e.g., '#4b4b4b' for a dark gray)
-            -- Or you can inherit from another highlight group (e.g., 'Comment' or 'Normal')
-            -- Let's try inheriting from 'Comment' which is usually a softer color in dark themes:
-            fg = { attribute = 'fg', highlight = 'Comment' },
-            -- Ensure background is transparent if not already. This is redundant if you did Step 1, but harmless.
-            bg = { attribute = 'bg', highlight = 'TabLineFill' }, -- Inherit background from TabLineFill (which we set to none)
-          },
-          separator_selected = {
-            -- For the separator next to the currently selected buffer
-            fg = { attribute = 'fg', highlight = 'Comment' }, -- Or a slightly different color if you prefer
-            bg = { attribute = 'bg', highlight = 'TabLineFill' },
-          },
-          -- You might also want to ensure the actual buffer names have appropriate backgrounds too
-          -- buffer_selected = { bg = { attribute = 'bg', highlight = 'TabLineFill' } },
-          -- buffer_visible = { bg = { attribute = 'bg', highlight = 'TabLineFill' } },
-          -- buffer_current = { bg = { attribute = 'bg', highlight = 'TabLineFill' } },
-          -- buffer_inactive = { bg = { attribute = 'bg', highlight = 'TabLineFill' } },
+          -- Let the transparent plugin handle the background clearing
+          -- This ensures proper transparency behavior
         },
       }
     end,

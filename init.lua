@@ -1117,11 +1117,6 @@ vim.cmd [[
   highlight NonText guibg=none ctermbg=none
   highlight EndOfBuffer guibg=none ctermbg=none
 
-  highlight BufferLineFill guibg=none ctermbg=none
-  highlight BufferLineBackground guibg=none ctermbg=none
-  highlight BufferLineSeparator guibg=none ctermbg=none
-  highlight BufferLineSeparatorSelected guibg=none ctermbg=none
-
   highlight NormalNC guibg=none ctermbg=none
   highlight FoldColumn guibg=none ctermbg=none
   highlight SignColumn guibg=none ctermbg=none
@@ -1135,16 +1130,6 @@ vim.cmd [[
   highlight NeoTreeWinSeparator guibg=none ctermbg=none
   highlight NeoTreeStatusLine guibg=none ctermbg=none
 
-  " You might need to check these if parts of the text still have a background:
-  " highlight NeoTreeDirectoryName guibg=none ctermbg=none
-  " highlight NeoTreeFileName guibg=none ctermbg=none
-  " highlight NeoTreeFileIcon guibg=none ctermbg=none
-  " highlight NeoTreeRootName guibg=none ctermbg=none
-
-  " And potentially others depending on your specific Neo-tree configuration and plugins,
-  " e.g., for Git status, diagnostics, etc.
-  " highlight NeoTreeGitUntracked guibg=none ctermbg=none
-  " highlight NeoTreeGitModified guibg=none ctermbg=none
 ]]
 
 -- The line beneath this is called `modeline`. See `:help modeline`
