@@ -1,6 +1,9 @@
 return {
   'xiyaowong/transparent.nvim',
   lazy = false, -- Often, transparent.nvim needs to load early
+  keys = {
+    { '<leader>tt', '<Cmd>TransparentToggle<CR>', desc = 'Toggle Transparency' },
+  },
   config = function()
     -- Optional, you don't have to run setup.
     require('transparent').setup {
