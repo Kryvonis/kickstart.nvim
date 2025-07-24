@@ -34,34 +34,15 @@ return {
         'StatusLine',
         'StatusLineNC',
         'EndOfBuffer',
+
+        -- --- Add these for Neo-tree transparency ---
+        'NeoTreeNormal',
+        'NeoTreeNormalNC',
+        'NeoTreeWinSeparator',
+        'NeoTreeStatusLine',
       },
       -- table: additional groups that should be cleared
-      extra_groups = {
-        -- Bufferline transparency
-        'BufferLineBackground',
-        'BufferLineFill',
-        'BufferLineTab',
-        'BufferLineTabSelected',
-        'BufferLineTabClose',
-        'BufferLineCloseButton',
-        'BufferLineCloseButtonSelected',
-        'BufferLineCloseButtonVisible',
-        'BufferLineSeparator',
-        'BufferLineSeparatorSelected',
-        'BufferLineSeparatorVisible',
-        'BufferLineIndicatorSelected',
-        'BufferLineIndicatorVisible',
-        'BufferLineModified',
-        'BufferLineModifiedSelected',
-        'BufferLineModifiedVisible',
-        'BufferLineNumbers',
-        'BufferLineNumbersSelected',
-        'BufferLineNumbersVisible',
-        'BufferLinePickSelected',
-        'BufferLinePickVisible',
-        'BufferLinePick',
-        'BufferLineOffsetSeparator',
-      },
+      extra_groups = {},
       -- table: groups you don't want to clear
       exclude_groups = {},
       -- function: code to be executed after highlight groups are cleared

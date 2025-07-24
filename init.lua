@@ -1124,12 +1124,6 @@ vim.cmd [[
   highlight LineNrNC guibg=none ctermbg=none
   highlight ColorColumn guibg=none ctermbg=none
 
-  " --- Add these for Neo-tree transparency ---
-  highlight NeoTreeNormal guibg=none ctermbg=none
-  highlight NeoTreeNormalNC guibg=none ctermbg=none
-  highlight NeoTreeWinSeparator guibg=none ctermbg=none
-  highlight NeoTreeStatusLine guibg=none ctermbg=none
-
 ]]
 
 -- The line beneath this is called `modeline`. See `:help modeline`
