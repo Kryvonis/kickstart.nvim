@@ -18,8 +18,6 @@ return {
           lualine_x = {
             require('lsp-status').status,
             'diff',
-            'encoding',
-            'fileformat',
           },
           lualine_y = { 'filetype' },
           lualine_z = {
