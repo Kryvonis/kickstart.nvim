@@ -1,3 +1,4 @@
+-- Bottom bar with add info
 return {
   {
     'nvim-lualine/lualine.nvim',

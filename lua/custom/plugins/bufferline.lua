@@ -1,3 +1,4 @@
+-- Top bar with showing buffers
 return {
   {
     'akinsho/bufferline.nvim',

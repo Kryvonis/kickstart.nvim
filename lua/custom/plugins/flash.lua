@@ -1,3 +1,4 @@
+-- Jump as search using s key
 return {
   {
     'folke/flash.nvim',
