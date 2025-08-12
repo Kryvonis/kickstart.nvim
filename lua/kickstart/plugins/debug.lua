@@ -23,6 +23,7 @@ return {
 
     -- Add your own debuggers here
     'leoluz/nvim-dap-go',
+    'mfussenegger/nvim-dap-python',
   },
   keys = {
     -- Basic debugging keymaps, feel free to change to your liking!
@@ -95,6 +96,7 @@ return {
       ensure_installed = {
         -- Update this to ensure that you have the debuggers for the langs you want
         'delve',
+        'debugpy',
       },
     }
 
@@ -144,6 +146,47 @@ return {
         detached = vim.fn.has 'win32' == 0,
       },
     }
+    
+    -- Python DAP configuration
+    -- Uses Mason's debugpy virtualenv as the adapter runtime
+    local mason_debugpy_python = vim.fn.stdpath('data') .. '/mason/packages/debugpy/venv/bin/python'
+    pcall(function()
+      require('dap-python').setup(mason_debugpy_python)
+    end)
+
+    -- Additional Python configurations (current file and FastAPI via uvicorn)
+    dap.configurations.python = dap.configurations.python or {}
+    
+    -- Helper to resolve project python from VIRTUAL_ENV if present
+    local function resolve_python()
+      local venv = os.getenv('VIRTUAL_ENV')
+      if venv and venv ~= '' then
+        return venv .. '/bin/python'
+      end
+      return 'python'
+    end
+
+    table.insert(dap.configurations.python, {
+      type = 'python',
+      request = 'launch',
+      name = 'Python: Current file',
+      program = '${file}',
+      console = 'integratedTerminal',
+      cwd = vim.fn.getcwd(),
+      pythonPath = resolve_python,
+    })
+
+    table.insert(dap.configurations.python, {
+      type = 'python',
+      request = 'launch',
+      name = 'Python: FastAPI (uvicorn)',
+      module = 'uvicorn',
+      -- Change 'main:app' to your ASGI app path if different
+      args = { 'main:app', '--reload', '--host', '127.0.0.1', '--port', '8000' },
+      console = 'integratedTerminal',
+      cwd = vim.fn.getcwd(),
+      pythonPath = resolve_python,
+    })
     -- TypeScript/JavaScript DAP configuration
     dap.adapters.node2 = {
       type = 'executable',
