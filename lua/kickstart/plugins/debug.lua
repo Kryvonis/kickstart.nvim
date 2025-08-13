@@ -97,6 +97,7 @@ return {
         -- Update this to ensure that you have the debuggers for the langs you want
         'delve',
         'debugpy',
+        'js-debug-adapter',
       },
     }
 
@@ -191,7 +192,20 @@ return {
     dap.adapters.node2 = {
       type = 'executable',
       command = 'node',
-      args = { vim.fn.stdpath 'data' .. '/mason/packages/js-debug-adapter/js-debug-adapter.js' },
+      -- Use Mason's js-debug server entrypoint
+      args = { vim.fn.stdpath 'data' .. '/mason/packages/js-debug-adapter/js-debug/src/dapDebugServer.js' },
+    }
+
+    -- Modern JS debugger (pwa-node) via js-debug-adapter
+    dap.adapters['pwa-node'] = {
+      type = 'server',
+      host = 'localhost',
+      port = '${port}',
+      executable = {
+        command = 'node',
+        -- Use Mason's js-debug server entrypoint
+        args = { vim.fn.stdpath('data') .. '/mason/packages/js-debug-adapter/js-debug/src/dapDebugServer.js', '${port}' },
+      },
     }
 
     dap.configurations.typescript = {
@@ -208,5 +222,61 @@ return {
     }
 
     dap.configurations.javascript = dap.configurations.typescript
+
+    -- NestJS: Launch compiled dist (requires source maps in tsconfig and a prior build)
+    table.insert(dap.configurations.typescript, {
+      name = 'NestJS: Launch (dist)',
+      type = 'pwa-node',
+      request = 'launch',
+      program = '${workspaceFolder}/dist/main.js',
+      cwd = '${workspaceFolder}',
+      sourceMaps = true,
+      outFiles = { '${workspaceFolder}/dist/**/*.js' },
+      console = 'integratedTerminal',
+      skipFiles = { '<node_internals>/**', '${workspaceFolder}/node_modules/**' },
+      resolveSourceMapLocations = { '${workspaceFolder}/dist/**/*.js', '!**/node_modules/**' },
+    })
+
+    -- NestJS: Launch using ts-node (ensure ts-node is installed; adjust if using ESM)
+    table.insert(dap.configurations.typescript, {
+      name = 'NestJS: Launch (ts-node)',
+      type = 'pwa-node',
+      request = 'launch',
+      runtimeExecutable = 'node',
+      runtimeArgs = { '-r', 'ts-node/register', '-r', 'tsconfig-paths/register' },
+      program = '${workspaceFolder}/src/main.ts',
+      cwd = '${workspaceFolder}',
+      sourceMaps = true,
+      protocol = 'inspector',
+      console = 'integratedTerminal',
+      skipFiles = { '<node_internals>/**', '${workspaceFolder}/node_modules/**' },
+      resolveSourceMapLocations = { '${workspaceFolder}/**/*.ts', '!**/node_modules/**' },
+      env = { TS_NODE_PROJECT = '${workspaceFolder}/tsconfig.json' },
+    })
+
+    -- NestJS: Attach to running process (pick process)
+    table.insert(dap.configurations.typescript, {
+      name = 'NestJS: Attach (pick process)',
+      type = 'pwa-node',
+      request = 'attach',
+      processId = require('dap.utils').pick_process,
+      cwd = '${workspaceFolder}',
+      sourceMaps = true,
+      skipFiles = { '<node_internals>/**', '${workspaceFolder}/node_modules/**' },
+      resolveSourceMapLocations = { '${workspaceFolder}/dist/**/*.js', '${workspaceFolder}/**/*.ts', '!**/node_modules/**' },
+    })
+
+    -- NestJS: Attach to default inspector port 9229 (use with `npm run start:debug`)
+    table.insert(dap.configurations.typescript, {
+      name = 'NestJS: Attach (9229)',
+      type = 'pwa-node',
+      request = 'attach',
+      address = '127.0.0.1',
+      port = 9229,
+      cwd = '${workspaceFolder}',
+      sourceMaps = true,
+      skipFiles = { '<node_internals>/**', '${workspaceFolder}/node_modules/**' },
+      resolveSourceMapLocations = { '${workspaceFolder}/dist/**/*.js', '${workspaceFolder}/**/*.ts', '!**/node_modules/**' },
+    })
   end,
 }
