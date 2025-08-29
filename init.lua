@@ -722,7 +722,6 @@ require('lazy').setup({
       local servers = {
         -- clangd = {},
         -- gopls = {},
-        -- pyright = {},
         -- rust_analyzer = {},
         -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
         --
@@ -732,6 +731,94 @@ require('lazy').setup({
         -- But for many setups, the LSP (`ts_ls`) will work just fine
         -- ts_ls = {},
         --
+
+        pyright = {
+          settings = {
+            python = {
+              analysis = {
+                -- Automatically search for stub files when using Pylance
+                autoSearchPaths = true,
+                -- Use library code for types when stubs are not present
+                useLibraryCodeForTypes = true,
+                -- Auto-import completions
+                autoImportCompletions = true,
+                -- Diagnostic mode
+                diagnosticMode = 'workspace',
+                -- Type checking mode
+                typeCheckingMode = 'basic',
+                disableOrganizeImports = true,
+              },
+
+              -- Let Poetry handle the Python path
+              defaultInterpreterPath = '',
+            },
+          },
+          on_new_config = function(new_config, root_dir)
+            -- This command finds the path to the virtual environment's Python executable
+            local venv_path = vim.fn.system 'poetry env info --executable'
+            -- Check if the command was successful and returned a valid path
+            if vim.v.shell_error == 0 and venv_path ~= '' then
+              new_config.settings.python.pythonPath = vim.trim(venv_path)
+            end
+          end,
+          -- Custom function to find Poetry virtual environment
+          before_init = function(_, config)
+            local util = require 'lspconfig.util'
+            local path = util.path
+
+            -- Function to find Poetry virtual environment
+            local function find_poetry_venv(startpath)
+              -- First, look for pyproject.toml in the project root
+              local root_dir = util.find_git_ancestor(startpath) or startpath
+              local pyproject_path = path.join(root_dir, 'pyproject.toml')
+
+              if vim.fn.filereadable(pyproject_path) == 1 then
+                -- Check if it's a Poetry project by reading pyproject.toml
+                local file = io.open(pyproject_path, 'r')
+                if file then
+                  local content = file:read '*all'
+                  file:close()
+
+                  -- Look for Poetry-specific sections
+                  if content:match '%[tool%.poetry%]' or content:match '%[build%-system%].*poetry' then
+                    -- Try to get the virtual environment path from Poetry
+                    local handle = io.popen('cd "' .. root_dir .. '" && poetry env info --path 2>/dev/null')
+                    if handle then
+                      local venv_path = handle:read('*a'):gsub('%s+', '')
+                      handle:close()
+
+                      if venv_path and venv_path ~= '' and vim.fn.isdirectory(venv_path) == 1 then
+                        local python_executable = path.join(venv_path, 'bin', 'python')
+                        -- Fallback to python3 if python doesn't exist
+                        if vim.fn.executable(python_executable) == 0 then
+                          python_executable = path.join(venv_path, 'bin', 'python3')
+                        end
+
+                        if vim.fn.executable(python_executable) == 1 then
+                          return python_executable
+                        end
+                      end
+                    end
+                  end
+                end
+              end
+              return nil
+            end
+
+            -- Try to find Poetry virtual environment
+            local poetry_python = find_poetry_venv(config.root_dir)
+            if poetry_python then
+              config.settings.python.defaultInterpreterPath = poetry_python
+              config.settings.python.pythonPath = poetry_python
+
+              -- Also set the virtual environment path for better package resolution
+              local venv_path = poetry_python:match '(.+)/bin/python[3]?$'
+              if venv_path then
+                config.settings.python.venvPath = venv_path
+              end
+            end
+          end,
+        },
 
         lua_ls = {
           -- cmd = { ... },
@@ -765,6 +852,8 @@ require('lazy').setup({
       local ensure_installed = vim.tbl_keys(servers or {})
       vim.list_extend(ensure_installed, {
         'stylua', -- Used to format Lua code
+        'pyright', -- Python language server
+        'ruff', -- Python linter and formatter
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
@@ -818,7 +907,7 @@ require('lazy').setup({
       formatters_by_ft = {
         lua = { 'stylua' },
         -- Conform can also run multiple formatters sequentially
-        -- python = { "isort", "black" },
+        python = { 'ruff_format', 'ruff_organize_imports' },
         --
         -- You can use 'stop_after_first' to run the first available formatter from the list
         javascript = { 'prettierd', 'prettier', stop_after_first = true },
@@ -1024,6 +1113,10 @@ require('lazy').setup({
         'luadoc',
         'markdown',
         'markdown_inline',
+        'python',
+        'toml',
+        'yaml',
+        'json',
         'query',
         'vim',
         'vimdoc',
