@@ -621,6 +621,143 @@ require('lazy').setup({
           --  the definition of its *type*, not where it was *defined*.
           map('grt', require('telescope.builtin').lsp_type_definitions, '[G]oto [T]ype Definition')
 
+          -- Python-specific keymaps
+          if vim.bo.filetype == 'python' then
+            map('<leader>po', function()
+              vim.cmd('!poetry install')
+            end, '[P]oetry Install')
+            
+            map('<leader>pr', function()
+              vim.cmd('!poetry run python %')
+            end, '[P]oetry [R]un current file')
+            
+            map('<leader>ps', function()
+              vim.cmd('!poetry shell')
+            end, '[P]oetry [S]hell')
+            
+            map('<leader>plr', function()
+              vim.cmd('LspRestart pyright')
+              vim.notify('Pyright LSP restarted', vim.log.levels.INFO)
+            end, '[P]yright [L]SP [R]estart')
+            
+            map('<leader>pli', function()
+              local clients = vim.lsp.get_active_clients({ name = 'pyright' })
+              if #clients > 0 then
+                local config = clients[1].config
+                local settings = config.settings.python
+                local analysis = settings.analysis or {}
+                
+                local info = {
+                  'Pyright Configuration:',
+                  '  Root Dir: ' .. (config.root_dir or 'Not set'),
+                  '  Python Path: ' .. (settings.pythonPath or 'Not set'),
+                  '  Default Interpreter: ' .. (settings.defaultInterpreterPath or 'Not set'),
+                  '  Virtual Env: ' .. (settings.venvPath or 'Not set'),
+                  '  Python Version: ' .. (settings.pythonVersion or 'Not set'),
+                  '',
+                  'Analysis Settings:',
+                  '  Type Checking: ' .. (analysis.typeCheckingMode or 'Not set'),
+                  '  Diagnostic Mode: ' .. (analysis.diagnosticMode or 'Not set'),
+                  '  Auto Search Paths: ' .. tostring(analysis.autoSearchPaths or false),
+                  '  Auto Import: ' .. tostring(analysis.autoImportCompletions or false),
+                  '',
+                  'Paths:',
+                  '  Include: ' .. (analysis.include and vim.inspect(analysis.include) or 'Not set'),
+                  '  Exclude: ' .. (analysis.exclude and vim.inspect(analysis.exclude) or 'Not set'),
+                  '  Extra Paths: ' .. (analysis.extraPaths and vim.inspect(analysis.extraPaths) or 'Not set'),
+                }
+                
+                -- Show in a floating window for better readability
+                local lines = {}
+                for _, line in ipairs(info) do
+                  table.insert(lines, line)
+                end
+                
+                local buf = vim.api.nvim_create_buf(false, true)
+                vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+                vim.api.nvim_buf_set_option(buf, 'filetype', 'text')
+                
+                local width = 80
+                local height = #lines
+                local win = vim.api.nvim_open_win(buf, true, {
+                  relative = 'editor',
+                  width = width,
+                  height = math.min(height, 30),
+                  col = (vim.o.columns - width) / 2,
+                  row = (vim.o.lines - height) / 2,
+                  style = 'minimal',
+                  border = 'rounded',
+                  title = ' Pyright Configuration ',
+                  title_pos = 'center',
+                })
+                
+                -- Close on escape or q
+                vim.api.nvim_buf_set_keymap(buf, 'n', '<Esc>', '<cmd>close<CR>', { noremap = true, silent = true })
+                vim.api.nvim_buf_set_keymap(buf, 'n', 'q', '<cmd>close<CR>', { noremap = true, silent = true })
+              else
+                vim.notify('Pyright LSP not active', vim.log.levels.WARN)
+              end
+            end, '[P]yright [L]SP [I]nfo')
+            
+            map('<leader>plc', function()
+              -- Check pyproject.toml configuration
+              local util = require 'lspconfig.util'
+              local path = util.path
+              local root_dir = util.find_git_ancestor(vim.fn.expand('%:p:h')) or vim.fn.getcwd()
+              local pyproject_path = path.join(root_dir, 'pyproject.toml')
+              
+              if vim.fn.filereadable(pyproject_path) == 1 then
+                vim.cmd('edit ' .. pyproject_path)
+              else
+                vim.notify('No pyproject.toml found in project root: ' .. root_dir, vim.log.levels.WARN)
+              end
+            end, '[P]yright [L]SP [C]onfig (open pyproject.toml)')
+            
+            map('<leader>pld', function()
+              -- Show detailed diagnostics for current file
+              local diagnostics = vim.diagnostic.get(0)
+              if #diagnostics == 0 then
+                vim.notify('No diagnostics for current buffer', vim.log.levels.INFO)
+                return
+              end
+              
+              local lines = { 'Diagnostics for ' .. vim.fn.expand('%:t') .. ':', '' }
+              for i, diag in ipairs(diagnostics) do
+                local severity = vim.diagnostic.severity[diag.severity] or 'UNKNOWN'
+                local line_info = string.format('[%d:%d] %s: %s', 
+                  diag.lnum + 1, diag.col + 1, severity, diag.message)
+                table.insert(lines, line_info)
+                if diag.source then
+                  table.insert(lines, '  Source: ' .. diag.source)
+                end
+                if i < #diagnostics then
+                  table.insert(lines, '')
+                end
+              end
+              
+              local buf = vim.api.nvim_create_buf(false, true)
+              vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+              vim.api.nvim_buf_set_option(buf, 'filetype', 'text')
+              
+              local width = 100
+              local height = math.min(#lines, 20)
+              local win = vim.api.nvim_open_win(buf, true, {
+                relative = 'editor',
+                width = width,
+                height = height,
+                col = (vim.o.columns - width) / 2,
+                row = (vim.o.lines - height) / 2,
+                style = 'minimal',
+                border = 'rounded',
+                title = ' Python Diagnostics ',
+                title_pos = 'center',
+              })
+              
+              vim.api.nvim_buf_set_keymap(buf, 'n', '<Esc>', '<cmd>close<CR>', { noremap = true, silent = true })
+              vim.api.nvim_buf_set_keymap(buf, 'n', 'q', '<cmd>close<CR>', { noremap = true, silent = true })
+            end, '[P]yright [L]SP [D]iagnostics')
+          end
+
           -- This function resolves a difference between neovim nightly (version 0.11) and stable (version 0.10)
           ---@param client vim.lsp.Client
           ---@param method vim.lsp.protocol.Method
@@ -748,75 +885,295 @@ require('lazy').setup({
                 typeCheckingMode = 'basic',
                 disableOrganizeImports = true,
               },
-
-              -- Let Poetry handle the Python path
-              defaultInterpreterPath = '',
             },
           },
-          on_new_config = function(new_config, root_dir)
-            -- This command finds the path to the virtual environment's Python executable
-            local venv_path = vim.fn.system 'poetry env info --executable'
-            -- Check if the command was successful and returned a valid path
-            if vim.v.shell_error == 0 and venv_path ~= '' then
-              new_config.settings.python.pythonPath = vim.trim(venv_path)
-            end
-          end,
-          -- Custom function to find Poetry virtual environment
+          
+          -- Enhanced Poetry and pyproject.toml integration
           before_init = function(_, config)
             local util = require 'lspconfig.util'
             local path = util.path
 
-            -- Function to find Poetry virtual environment
-            local function find_poetry_venv(startpath)
-              -- First, look for pyproject.toml in the project root
-              local root_dir = util.find_git_ancestor(startpath) or startpath
-              local pyproject_path = path.join(root_dir, 'pyproject.toml')
+            -- Function to parse pyproject.toml more robustly
+            local function parse_pyproject_toml(file_path)
+              local file = io.open(file_path, 'r')
+              if not file then
+                return nil
+              end
+              
+              local content = file:read('*all')
+              file:close()
+              
+              local result = {
+                is_poetry_project = false,
+                pyright_config = {},
+                project_name = nil,
+                src_layout = false,
+              }
+              
+              -- Check if it's a Poetry project
+              result.is_poetry_project = content:match('%[tool%.poetry%]') ~= nil or 
+                                       content:match('%[build%-system%].-poetry') ~= nil
+              
+              -- Extract project name for src layout detection
+              local name_match = content:match('%[tool%.poetry%].-name%s*=%s*["\']([^"\']+)["\']')
+              if name_match then
+                result.project_name = name_match
+              end
+              
+              -- Parse [tool.pyright] section more carefully
+              local pyright_section = content:match('%[tool%.pyright%](.-)%[tool%.')
+              if not pyright_section then
+                pyright_section = content:match('%[tool%.pyright%](.*)$')
+              end
+              
+              if pyright_section then
+                -- Parse include paths (handle both single-line and multi-line arrays)
+                local include_pattern = 'include%s*=%s*%[([^%]]+)%]'
+                local include_match = pyright_section:match(include_pattern)
+                if include_match then
+                  result.pyright_config.include = {}
+                  -- Handle both quoted and unquoted strings
+                  for path_item in include_match:gmatch('["\']([^"\']+)["\']') do
+                    table.insert(result.pyright_config.include, path_item)
+                  end
+                end
+                
+                -- Parse exclude paths
+                local exclude_pattern = 'exclude%s*=%s*%[([^%]]+)%]'
+                local exclude_match = pyright_section:match(exclude_pattern)
+                if exclude_match then
+                  result.pyright_config.exclude = {}
+                  for path_item in exclude_match:gmatch('["\']([^"\']+)["\']') do
+                    table.insert(result.pyright_config.exclude, path_item)
+                  end
+                end
+                
+                -- Parse other settings
+                local version_match = pyright_section:match('pythonVersion%s*=%s*["\']([^"\']+)["\']')
+                if version_match then
+                  result.pyright_config.pythonVersion = version_match
+                end
+                
+                local missing_imports = pyright_section:match('reportMissingImports%s*=%s*["\']?([^"\'%s]+)["\']?')
+                if missing_imports then
+                  result.pyright_config.reportMissingImports = missing_imports
+                end
+              end
+              
+              return result
+            end
 
-              if vim.fn.filereadable(pyproject_path) == 1 then
-                -- Check if it's a Poetry project by reading pyproject.toml
-                local file = io.open(pyproject_path, 'r')
-                if file then
-                  local content = file:read '*all'
-                  file:close()
+            -- Function to detect common Python project layouts (enhanced for monorepo)
+            local function detect_project_structure(root_dir, project_name)
+              local src_paths = {}
+              local common_patterns = {
+                'src',
+                project_name and ('src/' .. project_name) or nil,
+                project_name,
+                'lib',           -- Common in monorepos
+                'app',
+                'services',      -- Common in monorepos
+                'shared',        -- Common in monorepos
+                'packages',      -- Common in monorepos
+              }
+              
+              -- Add paths from common patterns
+              for _, pattern in ipairs(common_patterns) do
+                if pattern then
+                  local full_path = path.join(root_dir, pattern)
+                  if vim.fn.isdirectory(full_path) == 1 then
+                    table.insert(src_paths, full_path)
+                    -- Also check for __init__.py to confirm it's a Python package
+                    local init_file = path.join(full_path, '__init__.py')
+                    if vim.fn.filereadable(init_file) == 1 then
+                      -- This is likely a package directory, include parent too
+                      table.insert(src_paths, path.dirname(full_path))
+                    end
+                  end
+                end
+              end
+              
+              -- For monorepos, also scan for any directory with __init__.py at the root level
+              local handle = vim.loop.fs_scandir(root_dir)
+              if handle then
+                while true do
+                  local name, type = vim.loop.fs_scandir_next(handle)
+                  if not name then break end
+                  
+                  if type == 'directory' and not name:match('^%.') then
+                    local dir_path = path.join(root_dir, name)
+                    local init_file = path.join(dir_path, '__init__.py')
+                    if vim.fn.filereadable(init_file) == 1 then
+                      table.insert(src_paths, dir_path)
+                    end
+                  end
+                end
+              end
+              
+              -- Always include the root directory
+              table.insert(src_paths, root_dir)
+              
+              -- Remove duplicates and sort by length (shorter paths first)
+              local unique_paths = {}
+              local seen = {}
+              for _, p in ipairs(src_paths) do
+                if not seen[p] then
+                  seen[p] = true
+                  table.insert(unique_paths, p)
+                end
+              end
+              
+              -- Sort by path length (shorter first) for better resolution order
+              table.sort(unique_paths, function(a, b) return #a < #b end)
+              
+              return unique_paths
+            end
 
-                  -- Look for Poetry-specific sections
-                  if content:match '%[tool%.poetry%]' or content:match '%[build%-system%].*poetry' then
-                    -- Try to get the virtual environment path from Poetry
-                    local handle = io.popen('cd "' .. root_dir .. '" && poetry env info --path 2>/dev/null')
-                    if handle then
-                      local venv_path = handle:read('*a'):gsub('%s+', '')
-                      handle:close()
-
-                      if venv_path and venv_path ~= '' and vim.fn.isdirectory(venv_path) == 1 then
-                        local python_executable = path.join(venv_path, 'bin', 'python')
-                        -- Fallback to python3 if python doesn't exist
-                        if vim.fn.executable(python_executable) == 0 then
-                          python_executable = path.join(venv_path, 'bin', 'python3')
-                        end
-
-                        if vim.fn.executable(python_executable) == 1 then
-                          return python_executable
+            -- Function to setup Poetry virtual environment
+            local function setup_poetry_venv(root_dir)
+              -- Try multiple methods to get Poetry venv info
+              local commands = {
+                'poetry env info --path',
+                'poetry env info -p',
+              }
+              
+              for _, cmd in ipairs(commands) do
+                local handle = io.popen('cd "' .. root_dir .. '" && ' .. cmd .. ' 2>/dev/null')
+                if handle then
+                  local venv_path = handle:read('*a')
+                  handle:close()
+                  
+                  if venv_path and venv_path ~= '' then
+                    venv_path = vim.trim(venv_path)
+                    if vim.fn.isdirectory(venv_path) == 1 then
+                      -- Find Python executable
+                      local python_paths = {
+                        path.join(venv_path, 'bin', 'python'),
+                        path.join(venv_path, 'bin', 'python3'),
+                        path.join(venv_path, 'Scripts', 'python.exe'), -- Windows
+                        path.join(venv_path, 'Scripts', 'python3.exe'), -- Windows
+                      }
+                      
+                      for _, python_path in ipairs(python_paths) do
+                        if vim.fn.executable(python_path) == 1 then
+                          return python_path, venv_path
                         end
                       end
                     end
                   end
                 end
               end
-              return nil
+              
+              return nil, nil
             end
 
-            -- Try to find Poetry virtual environment
-            local poetry_python = find_poetry_venv(config.root_dir)
-            if poetry_python then
-              config.settings.python.defaultInterpreterPath = poetry_python
-              config.settings.python.pythonPath = poetry_python
-
-              -- Also set the virtual environment path for better package resolution
-              local venv_path = poetry_python:match '(.+)/bin/python[3]?$'
-              if venv_path then
-                config.settings.python.venvPath = venv_path
+            -- Function to find the correct pyproject.toml (handles monorepo structure)
+            local function find_pyproject_toml(start_dir)
+              local current_dir = start_dir
+              local pyproject_files = {}
+              
+              -- Walk up the directory tree to find all pyproject.toml files
+              while current_dir and current_dir ~= '/' do
+                local pyproject_path = path.join(current_dir, 'pyproject.toml')
+                if vim.fn.filereadable(pyproject_path) == 1 then
+                  table.insert(pyproject_files, {
+                    path = pyproject_path,
+                    dir = current_dir,
+                    is_root = vim.fn.isdirectory(path.join(current_dir, '.git')) == 1
+                  })
+                end
+                current_dir = path.dirname(current_dir)
               end
+              
+              -- Prefer the root project (with .git) that has Pyright config
+              for _, file_info in ipairs(pyproject_files) do
+                local project_info = parse_pyproject_toml(file_info.path)
+                if project_info and (project_info.pyright_config.include or file_info.is_root) then
+                  return file_info.path, file_info.dir, project_info
+                end
+              end
+              
+              -- Fallback to the first Poetry project found
+              for _, file_info in ipairs(pyproject_files) do
+                local project_info = parse_pyproject_toml(file_info.path)
+                if project_info and project_info.is_poetry_project then
+                  return file_info.path, file_info.dir, project_info
+                end
+              end
+              
+              return nil, nil, nil
             end
+
+            -- Main setup function
+            local function setup_poetry_project()
+              local start_dir = config.root_dir or util.find_git_ancestor(vim.fn.getcwd()) or vim.fn.getcwd()
+              local pyproject_path, root_dir, project_info = find_pyproject_toml(start_dir)
+              
+              if not pyproject_path or not project_info then
+                return
+              end
+              
+              -- Setup Python interpreter from Poetry
+              local python_path, venv_path = setup_poetry_venv(root_dir)
+              if python_path then
+                config.settings.python.pythonPath = python_path
+                config.settings.python.defaultInterpreterPath = python_path
+                if venv_path then
+                  config.settings.python.venvPath = venv_path
+                end
+              end
+              
+              -- Apply pyproject.toml Pyright configuration
+              if project_info.pyright_config.include then
+                config.settings.python.analysis.include = project_info.pyright_config.include
+              end
+              
+              if project_info.pyright_config.exclude then
+                config.settings.python.analysis.exclude = project_info.pyright_config.exclude
+              end
+              
+              if project_info.pyright_config.pythonVersion then
+                config.settings.python.pythonVersion = project_info.pyright_config.pythonVersion
+              end
+              
+              if project_info.pyright_config.reportMissingImports then
+                config.settings.python.analysis.reportMissingImports = project_info.pyright_config.reportMissingImports
+              end
+              
+              -- Setup extra paths for local package resolution
+              local extra_paths = detect_project_structure(root_dir, project_info.project_name)
+              
+              -- Add any explicitly configured include paths
+              if project_info.pyright_config.include then
+                for _, include_path in ipairs(project_info.pyright_config.include) do
+                  local full_path = path.join(root_dir, include_path)
+                  if vim.fn.isdirectory(full_path) == 1 then
+                    table.insert(extra_paths, full_path)
+                  end
+                end
+              end
+              
+              if #extra_paths > 0 then
+                config.settings.python.analysis.extraPaths = extra_paths
+              end
+              
+              -- Debug information
+              vim.schedule(function()
+                local debug_info = {
+                  'Pyright Poetry Setup:',
+                  '  Config: ' .. pyproject_path,
+                  '  Root: ' .. root_dir,
+                  '  Python: ' .. (python_path or 'Not found'),
+                  '  Venv: ' .. (venv_path or 'Not found'),
+                  '  Extra paths: ' .. (extra_paths and table.concat(extra_paths, ', ') or 'None'),
+                  '  Include: ' .. (project_info.pyright_config.include and table.concat(project_info.pyright_config.include, ', ') or 'None'),
+                }
+                vim.notify(table.concat(debug_info, '\n'), vim.log.levels.INFO, { title = 'Pyright Setup' })
+              end)
+            end
+
+            -- Run the setup
+            setup_poetry_project()
           end,
         },
 
