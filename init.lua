@@ -802,7 +802,15 @@ require('lazy').setup({
                 autoImportCompletions = true,
                 diagnosticMode = 'openFilesOnly', -- Changed from 'workspace' for better performance
                 typeCheckingMode = 'basic',
-                disableOrganizeImports = true,
+                disableOrganizeImports = false, -- Enable organize imports code actions
+                -- Enable more diagnostics for better code actions
+                reportMissingImports = 'error',
+                reportMissingTypeStubs = false,
+                reportUnusedImport = 'warning',
+                reportUnusedVariable = 'warning',
+                reportDuplicateImport = 'warning',
+                -- Enable undefined variable reporting for auto-import suggestions
+                reportUndefinedVariable = 'error',
               },
             },
           },
