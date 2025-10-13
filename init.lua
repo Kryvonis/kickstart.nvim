@@ -665,10 +665,8 @@ require('lazy').setup({
 
             map('<leader>plc', function()
               -- Check pyproject.toml configuration
-              local util = require 'lspconfig.util'
-              local path = util.path
-              local root_dir = util.find_git_ancestor(vim.fn.expand '%:p:h') or vim.fn.getcwd()
-              local pyproject_path = path.join(root_dir, 'pyproject.toml')
+              local root_dir = vim.fs.root(0, '.git') or vim.fn.getcwd()
+              local pyproject_path = vim.fs.joinpath(root_dir, 'pyproject.toml')
 
               if vim.fn.filereadable(pyproject_path) == 1 then
                 vim.cmd('edit ' .. pyproject_path)
@@ -817,8 +815,15 @@ require('lazy').setup({
 
           -- Enhanced Poetry and pyproject.toml integration
           before_init = function(_, config)
-            local util = require 'lspconfig.util'
-            local path = util.path
+            -- Use native vim.fs for path operations
+            local path = {
+              join = function(...)
+                return vim.fs.joinpath(...)
+              end,
+              dirname = function(p)
+                return vim.fs.dirname(p)
+              end,
+            }
 
             -- Function to parse pyproject.toml more robustly
             local function parse_pyproject_toml(file_path)
@@ -1036,7 +1041,7 @@ require('lazy').setup({
 
             -- Main setup function
             local function setup_poetry_project()
-              local start_dir = config.root_dir or util.find_git_ancestor(vim.fn.getcwd()) or vim.fn.getcwd()
+              local start_dir = config.root_dir or vim.fs.root(vim.fn.getcwd(), '.git') or vim.fn.getcwd()
               local pyproject_path, root_dir, project_info = find_pyproject_toml(start_dir)
 
               if not pyproject_path or not project_info then
@@ -1147,7 +1152,8 @@ require('lazy').setup({
             -- by the server configuration above. Useful when disabling
             -- certain features of an LSP (for example, turning off formatting for ts_ls)
             server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
-            require('lspconfig')[server_name].setup(server)
+            -- Use new vim.lsp.config API instead of deprecated lspconfig
+            vim.lsp.config[server_name] = server
           end,
         },
       }
@@ -1214,17 +1220,7 @@ require('lazy').setup({
           end
           return 'make install_jsregexp'
         end)(),
-        dependencies = {
-          -- `friendly-snippets` contains a variety of premade snippets.
-          --    See the README about individual language/framework/plugin snippets:
-          --    https://github.com/rafamadriz/friendly-snippets
-          -- {
-          --   'rafamadriz/friendly-snippets',
-          --   config = function()
-          --     require('luasnip.loaders.from_vscode').lazy_load()
-          --   end,
-          -- },
-        },
+        dependencies = {},
         opts = {},
       },
       'folke/lazydev.nvim',
