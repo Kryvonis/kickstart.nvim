@@ -77,6 +77,16 @@ vim.opt.foldlevel = 99
 vim.opt.foldlevelstart = 1
 vim.opt.foldcolumn = '0' -- Show fold column '1'
 vim.opt.fillchars:append { fold = ' ' } -- Optional: cleaner look
+vim.opt.guicursor = {
+  -- This is a common setting that enables blinking across all modes
+  -- and sets the blinking rate.
+  'n-v-c:block-Cursor/lCursor',
+  'i-ci-ve:ver25-Cursor/lCursor',
+  'r-cr:hor20-Cursor/lCursor',
+  'o:hor50-Cursor/lCursor',
+  'a:blinkwait700-blinkoff400-blinkon250-Cursor/lCursor', -- The blinking part
+  'sm:block-blinkwait175-blinkoff150-blinkon175-Cursor/lCursor',
+}
 
 -- LSP and DAP logging (only enable when debugging)
 -- vim.lsp.set_log_level 'WARN'
@@ -792,6 +802,7 @@ require('lazy').setup({
         --
 
         pyright = {
+          cmd = { vim.fn.stdpath 'data' .. '/mason/bin/pyright-langserver', '--stdio' },
           settings = {
             python = {
               analysis = {
@@ -1152,8 +1163,10 @@ require('lazy').setup({
             -- by the server configuration above. Useful when disabling
             -- certain features of an LSP (for example, turning off formatting for ts_ls)
             server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
-            -- Use new vim.lsp.config API instead of deprecated lspconfig
-            vim.lsp.config[server_name] = server
+            -- TODO: Migrate to vim.lsp.config API when stable
+            -- Currently using require('lspconfig') for compatibility
+            -- The deprecation warning is expected in Neovim 0.11+
+            require('lspconfig')[server_name].setup(server)
           end,
         },
       }
