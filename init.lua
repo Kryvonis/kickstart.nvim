@@ -123,7 +123,7 @@ vim.api.nvim_create_autocmd('BufWinEnter', {
 -- vim.schedule(function()
 --   vim.o.clipboard = 'unnamedplus'
 -- end)
-vim.opt.clipboard = 'unnamedplus'
+vim.opt.clipboard = 'unnamed,unnamedplus'
 
 -- Remap common delete actions to use the black hole register "_
 vim.keymap.set('n', 'd', '"_d', { desc = 'Delete without yanking (Blackhole)' })
