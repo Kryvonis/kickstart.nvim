@@ -120,9 +120,22 @@ vim.api.nvim_create_autocmd('BufWinEnter', {
 --  Schedule the setting after `UiEnter` because it can increase startup-time.
 --  Remove this option if you want your OS clipboard to remain independent.
 --  See `:help 'clipboard'`
-vim.schedule(function()
-  vim.o.clipboard = 'unnamedplus'
-end)
+-- vim.schedule(function()
+--   vim.o.clipboard = 'unnamedplus'
+-- end)
+vim.opt.clipboard = 'unnamedplus'
+
+-- Remap common delete actions to use the black hole register "_
+vim.keymap.set('n', 'd', '"_d', { desc = 'Delete without yanking (Blackhole)' })
+vim.keymap.set('n', 'D', '"_D', { desc = 'Delete line end without yanking' })
+vim.keymap.set('n', 'x', '"_x', { desc = 'Delete character without yanking' })
+vim.keymap.set('n', 's', '"_s', { desc = 'Substitute character without yanking' })
+
+-- In Visual mode, replace the text with content from the black hole register
+-- This prevents a visual delete from copying to the register.
+vim.keymap.set('x', 'd', '"_d', { desc = 'Delete visual selection without yanking' })
+vim.keymap.set('x', 'x', '"_x', { desc = 'Delete visual selection without yanking' })
+vim.keymap.set('x', 's', '"_s', { desc = 'Substitute selection without yanking' })
 
 -- Enable break indent
 vim.o.breakindent = true
@@ -195,7 +208,8 @@ vim.keymap.set('v', '<', '<gv', { noremap = true, silent = true })
 vim.keymap.set('v', '>', '>gv', { noremap = true, silent = true })
 
 -- Diagnostic keymaps
-vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
+-- vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open Session Window' })
+vim.keymap.set('n', '-', '<CMD>Oil<CR>', { desc = 'Open parent directory' })
 
 -- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
 -- for people to discover. Otherwise, you normally need to press <C-\><C-n>, which
