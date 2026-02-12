@@ -147,11 +147,11 @@ return {
         detached = vim.fn.has 'win32' == 0,
       },
     }
-    
+
     -- Python DAP configuration
     -- Configure adapter to use Mason's global debugpy (no per-project install needed)
-    local mason_debugpy = vim.fn.stdpath('data') .. '/mason/packages/debugpy/venv/bin/python'
-    
+    local mason_debugpy = vim.fn.stdpath 'data' .. '/mason/packages/debugpy/venv/bin/python'
+
     dap.adapters.python = {
       type = 'executable',
       command = mason_debugpy,
@@ -160,13 +160,36 @@ return {
 
     -- Additional Python configurations (current file and FastAPI via uvicorn)
     dap.configurations.python = dap.configurations.python or {}
-    
+
+    -- Helper to load .env file
+    local function load_env_file()
+      local env = vim.fn.environ()
+      local cwd = vim.fn.getcwd()
+      local env_file = cwd .. '/.env'
+      
+      if vim.fn.filereadable(env_file) == 1 then
+        for line in io.lines(env_file) do
+          -- Skip comments and empty lines
+          if line:match('^%s*[^#]') then
+            local key, value = line:match('^%s*([%w_]+)%s*=%s*(.+)%s*$')
+            if key and value then
+              -- Remove quotes if present
+              value = value:gsub('^["\']', ''):gsub('["\']$', '')
+              env[key] = value
+            end
+          end
+        end
+      end
+      
+      return env
+    end
+
     -- Helper to resolve project python from VIRTUAL_ENV or Poetry
     local function resolve_python()
       -- Try Poetry first
-      local handle = io.popen('poetry env info -p 2>/dev/null')
+      local handle = io.popen 'poetry env info -p 2>/dev/null'
       if handle then
-        local result = handle:read('*a')
+        local result = handle:read '*a'
         handle:close()
         if result and result ~= '' then
           local poetry_venv = result:gsub('%s+', '')
@@ -175,13 +198,13 @@ return {
           end
         end
       end
-      
+
       -- Fall back to VIRTUAL_ENV
-      local venv = os.getenv('VIRTUAL_ENV')
+      local venv = os.getenv 'VIRTUAL_ENV'
       if venv and venv ~= '' then
         return venv .. '/bin/python'
       end
-      
+
       return 'python'
     end
 
@@ -193,6 +216,7 @@ return {
       console = 'integratedTerminal',
       cwd = vim.fn.getcwd(),
       pythonPath = resolve_python,
+      env = load_env_file,
     })
 
     table.insert(dap.configurations.python, {
@@ -205,6 +229,7 @@ return {
       cwd = vim.fn.getcwd(),
       pythonPath = resolve_python,
       justMyCode = false,
+      env = load_env_file,
     })
 
     table.insert(dap.configurations.python, {
@@ -213,13 +238,14 @@ return {
       name = 'Python: FastAPI (uvicorn) - custom port',
       module = 'uvicorn',
       args = function()
-        local port = vim.fn.input('Port number: ', '8000')
+        local port = vim.fn.input('Port number: ', '8001')
         return { 'app.main:app', '--host', '127.0.0.1', '--port', port }
       end,
       console = 'integratedTerminal',
       cwd = vim.fn.getcwd(),
       pythonPath = resolve_python,
       justMyCode = false,
+      env = load_env_file,
     })
     -- TypeScript/JavaScript DAP configuration
     dap.adapters.node2 = {
@@ -237,7 +263,7 @@ return {
       executable = {
         command = 'node',
         -- Use Mason's js-debug server entrypoint
-        args = { vim.fn.stdpath('data') .. '/mason/packages/js-debug-adapter/js-debug/src/dapDebugServer.js', '${port}' },
+        args = { vim.fn.stdpath 'data' .. '/mason/packages/js-debug-adapter/js-debug/src/dapDebugServer.js', '${port}' },
       },
     }
 
