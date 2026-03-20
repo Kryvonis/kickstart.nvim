@@ -123,7 +123,7 @@ vim.api.nvim_create_autocmd('BufWinEnter', {
 -- vim.schedule(function()
 --   vim.o.clipboard = 'unnamedplus'
 -- end)
-vim.opt.clipboard = 'unnamedplus'
+vim.opt.clipboard = 'unnamed,unnamedplus'
 
 -- Remap common delete actions to use the black hole register "_
 vim.keymap.set('n', 'd', '"_d', { desc = 'Delete without yanking (Blackhole)' })
@@ -247,6 +247,16 @@ vim.api.nvim_create_autocmd('FileType', {
   callback = function()
     local esc = vim.api.nvim_replace_termcodes('<Esc>', true, true, true)
     vim.fn.setreg('c', 'yoconsole.log("' .. esc .. 'pa:", ' .. esc .. 'pa);' .. esc)
+  end,
+})
+
+-- Fix folding for JSON files
+vim.api.nvim_create_autocmd('FileType', {
+  pattern = { 'json', 'jsonc' },
+  callback = function()
+    vim.schedule(function()
+      vim.opt_local.foldmethod = 'indent'
+    end)
   end,
 })
 
