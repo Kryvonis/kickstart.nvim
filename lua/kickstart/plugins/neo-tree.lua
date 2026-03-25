@@ -1,6 +1,8 @@
 -- Neo-tree is a Neovim plugin to browse the file system
 -- https://github.com/nvim-neo-tree/neo-tree.nvim
 
+---@module 'lazy'
+---@type LazySpec
 return {
   'nvim-neo-tree/neo-tree.nvim',
   version = '*',
@@ -14,6 +16,8 @@ return {
     { '<leader>ee', ':Neotree toggle filesystem<CR>', desc = 'NeoTree filesystem', silent = true },
     { '<leader>eg', ':Neotree toggle git_status<CR>', desc = 'NeoTree git status', silent = true },
   },
+  ---@module 'neo-tree'
+  ---@type neotree.Config
   opts = {
     filesystem = {
       follow_current_file = {
