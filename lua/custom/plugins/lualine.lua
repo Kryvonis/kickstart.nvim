@@ -17,7 +17,15 @@ return {
             { 'diagnostics', sources = { 'nvim_lsp' } },
           },
           lualine_x = {
-            require('lsp-status').status,
+            {
+              function()
+                local ok, lsp_status = pcall(require, 'lsp-status')
+                if ok then
+                  return lsp_status.status()
+                end
+                return ''
+              end,
+            },
             'diff',
           },
           lualine_y = { 'filetype' },
